@@ -17,38 +17,38 @@ class CircularQueue:
 
     def enqueue(self, item):
         if self.is_full():
-            print(f"{Fore.LIGHTBLACK_EX}Queue is full. Producer is waiting.{Style.RESET_ALL}\n")
+            print(f"{Fore.LIGHTBLACK_EX}Fila está cheia. Produtor está aguardando.{Style.RESET_ALL}\n")
             return False
         elif self.is_empty():
             self.front = self.rear = 0
         else:
             self.rear = (self.rear + 1) % self.size
         self.queue[self.rear] = item
-        print(f"{Fore.GREEN}Produced item {item}. Queue: {self.queue}{Style.RESET_ALL}\n")
+        print(f"{Fore.GREEN}Item produzido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
         return True
 
     def dequeue(self):
         if self.is_empty():
-            print(f"{Fore.LIGHTBLACK_EX}Queue is empty. Consumer is waiting.{Style.RESET_ALL}\n")
+            print(f"{Fore.LIGHTBLACK_EX}Fila está vazia. Consumidor está aguardando.{Style.RESET_ALL}\n")
             return None
         elif self.front == self.rear:
             item = self.queue[self.front]
             self.queue[self.front] = None  # Remove o item da fila
             self.front = self.rear = -1
-            print(f"{Fore.RED}Consumed item {item}. Queue: {self.queue}{Style.RESET_ALL}\n")
+            print(f"{Fore.RED}Item consumido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
             return item
         else:
             item = self.queue[self.front]
             self.queue[self.front] = None  # Remove o item da fila
             self.front = (self.front + 1) % self.size
-            print(f"{Fore.RED}Consumed item {item}. Queue: {self.queue}{Style.RESET_ALL}\n")
+            print(f"{Fore.RED}Item consumido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
             return item
 
 mutex = threading.Lock()
-size = int(input("Digite o tamanho da fila: "))
-queue = CircularQueue(size)  
+tamanho_fila = int(input("Digite o tamanho da fila: "))
+queue = CircularQueue(tamanho_fila)  
 
-class Producer(threading.Thread):
+class Produtor(threading.Thread):
     def run(self):
         global mutex, queue
         while True:
@@ -59,7 +59,7 @@ class Producer(threading.Thread):
             mutex.release()
             time.sleep(1)
 
-class Consumer(threading.Thread):
+class Consumidor(threading.Thread):
     def run(self):
         global mutex, queue
         while True:
@@ -70,17 +70,17 @@ class Consumer(threading.Thread):
             time.sleep(1)
 
 # Criando threads de produtor e consumidor
-producers = [Producer() for _ in range(3)]  # Número de produtores
-consumers = [Consumer() for _ in range(2)]  # Número de consumidores
+produtores = [Produtor() for _ in range(3)]  # Número de produtores
+consumidores = [Consumidor() for _ in range(2)]  # Número de consumidores
 
 # Iniciando as threads
-for producer in producers:
-    producer.start()
-for consumer in consumers:
-    consumer.start()
+for produtor in produtores:
+    produtor.start()
+for consumidor in consumidores:
+    consumidor.start()
 
 # Esperando as threads terminarem
-for producer in producers:
-    producer.join()
-for consumer in consumers:
-    consumer.join()
+for produtor in produtores:
+    produtor.join()
+for consumidor in consumidores:
+    consumidor.join()

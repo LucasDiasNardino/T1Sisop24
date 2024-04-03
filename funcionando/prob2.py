@@ -1,6 +1,7 @@
 import threading
 import time
 import random
+from colorama import Fore, Style
 
 class LamportMutex:
     def __init__(self, num_threads):
@@ -41,7 +42,7 @@ class Cannibal(threading.Thread):
                 print(f'Canibal {self.index} pegou {servings_to_take} porções.\tPorções restantes: {self.table.value - servings_to_take}.')
                 self.table.value -= servings_to_take
             else:
-                print(f'Canibal {self.index} acordou o cozinheiro.')
+                print(f'{Fore.RED}Sem porções disponíveis. Canibal {self.index} acordou o cozinheiro.{Style.RESET_ALL}')
                 self.mutex.unlock(self.index)
                 continue
             self.mutex.unlock(self.index)
@@ -65,7 +66,8 @@ class Cook(threading.Thread):
             # Cozinheiro acorda e prepara mais porções
             print('\nCozinheiro acordou.')
             self.table.value = self.servings
-            print(f'Cozinheiro colocou {self.servings} porções na mesa.')
+            print(f'{Fore.GREEN}Cozinheiro colocou {self.servings} porções na mesa.{Style.RESET_ALL}')
+            self.table.up()  # Notifica os canibais que mais porções estão disponíveis
 
 # Função para ler entrada do usuário
 def get_input():
@@ -96,6 +98,7 @@ class Semaphore:
             while self.value <= 0:
                 self.lock.wait()
             self.value -= 1
+            self.lock.notify()  # Notificar os canibais que o recurso foi atualizado
 
 table = Semaphore(M)
 
