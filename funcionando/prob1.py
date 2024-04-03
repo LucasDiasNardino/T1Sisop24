@@ -46,8 +46,10 @@ class CircularQueue:
             return item
 
 mutex = LamportMutex(5)  # Altere para o número adequado de threads
-tamanho_fila = int(input("Digite o tamanho da fila: "))
+tamanho_fila = int(input("Digite o tamanho da fila: \n"))
 queue = CircularQueue(tamanho_fila)  
+qtProdutores = int(input("Digite a quantidade de produtores: \n"))
+qtConsumidores = int(input("Digite a quantidade de consumidores: \n"))
 
 class Produtor(threading.Thread):
     def run(self):
@@ -71,8 +73,8 @@ class Consumidor(threading.Thread):
             time.sleep(1)
 
 # Criando threads de produtor e consumidor
-produtores = [Produtor() for _ in range(3)]  # Número de produtores
-consumidores = [Consumidor() for _ in range(2)]  # Número de consumidores
+produtores = [Produtor() for _ in range(qtProdutores)]  # Número de produtores
+consumidores = [Consumidor() for _ in range(qtConsumidores)]  # Número de consumidores
 
 # Iniciando as threads
 for produtor in produtores:
