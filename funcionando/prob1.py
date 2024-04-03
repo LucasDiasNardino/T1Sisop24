@@ -2,6 +2,7 @@ import threading
 import time
 import random
 from colorama import Fore, Style
+from lamport import LamportMutex  # Importa a classe LamportMutex do arquivo lamport.py
 
 class CircularQueue:
     def __init__(self, size):
@@ -44,7 +45,7 @@ class CircularQueue:
             print(f"{Fore.RED}Item consumido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
             return item
 
-mutex = threading.Lock()
+mutex = LamportMutex(5)  # Altere para o número adequado de threads
 tamanho_fila = int(input("Digite o tamanho da fila: "))
 queue = CircularQueue(tamanho_fila)  
 
@@ -52,21 +53,21 @@ class Produtor(threading.Thread):
     def run(self):
         global mutex, queue
         while True:
-            mutex.acquire()
+            mutex.lock(threading.get_ident() % 5)
             if not queue.is_full():
                 item = random.randint(1, 100)  # Item produzido
                 queue.enqueue(item)
-            mutex.release()
+            mutex.unlock(threading.get_ident() % 5)
             time.sleep(1)
 
 class Consumidor(threading.Thread):
     def run(self):
         global mutex, queue
         while True:
-            mutex.acquire()
+            mutex.lock(threading.get_ident() % 5)
             if not queue.is_empty():
                 item = queue.dequeue()
-            mutex.release()
+            mutex.unlock(threading.get_ident() % 5)
             time.sleep(1)
 
 # Criando threads de produtor e consumidor
