@@ -5,12 +5,13 @@ from colorama import Fore, Style
 from lamport import LamportMutex  # Importa a classe LamportMutex do arquivo lamport.py
 
 class Cannibal(threading.Thread):
-    def __init__(self, index, servings, table, mutex):
+    def __init__(self, index, servings, table, mutex, cook):
         threading.Thread.__init__(self)
         self.index = index
         self.servings = servings
         self.table = table
         self.mutex = mutex
+        self.cook = cook
 
     def run(self):
         while True:
@@ -25,6 +26,7 @@ class Cannibal(threading.Thread):
                 self.table.value -= servings_to_take
             else:
                 print(f'{Fore.RED}Sem porções disponíveis. Canibal {self.index} acordou o cozinheiro.{Style.RESET_ALL}')
+                self.cook.wake_up()
                 self.mutex.unlock(self.index)
                 continue
             self.mutex.unlock(self.index)
@@ -38,18 +40,25 @@ class Cook(threading.Thread):
         threading.Thread.__init__(self)
         self.table = table
         self.servings = servings
+        self.mutex = threading.Lock()
+        self.cond = threading.Condition(self.mutex)
 
     def run(self):
         while True:
-            # Cozinheiro dormindo
-            print('\nCozinheiro dormindo...')
-            time.sleep(random.uniform(2, 5))
+            with self.cond:
+                # Cozinheiro dormindo
+                print('\nCozinheiro dormindo...')
+                self.cond.wait()
             
-            # Cozinheiro acorda e prepara mais porções
-            print('\nCozinheiro acordou.')
-            self.table.value = self.servings
-            print(f'{Fore.GREEN}Cozinheiro colocou {self.servings} porções na mesa.{Style.RESET_ALL}')
-            self.table.up()  # Notifica os canibais que mais porções estão disponíveis
+                # Cozinheiro acorda e prepara mais porções
+                print('\nCozinheiro acordou.')
+                self.table.value = self.servings
+                print(f'{Fore.GREEN}Cozinheiro colocou {self.servings} porções na mesa.{Style.RESET_ALL}')
+                self.cond.notify_all()  # Notifica os canibais que mais porções estão disponíveis
+
+    def wake_up(self):
+        with self.cond:
+            self.cond.notify()
 
 # Função para ler entrada do usuário
 def get_input():
@@ -67,33 +76,21 @@ mutex = LamportMutex(N)
 # Inicializando semáforo contador para a mesa
 class Semaphore:
     def __init__(self, initial):
-        self.lock = threading.Condition(threading.Lock())
         self.value = initial
 
-    def up(self):
-        with self.lock:
-            self.value += 1
-            self.lock.notify()
-
-    def down(self):
-        with self.lock:
-            while self.value <= 0:
-                self.lock.wait()
-            self.value -= 1
-            self.lock.notify()  # Notificar os canibais que o recurso foi atualizado
-
+# Criando objetos de semáforo e cozinheiro
 table = Semaphore(M)
+cook = Cook(table, servings)
 
-# Criando threads para os canibais e o cozinheiro
-canibais = [Cannibal(i, random.randint(1, 3), table, mutex) for i in range(N)]
-cozinheiro = Cook(table, servings)
+# Criando threads para os canibais
+canibais = [Cannibal(i, random.randint(1, 3), table, mutex, cook) for i in range(N)]
 
 # Iniciando as threads
 for canibal in canibais:
     canibal.start()
-cozinheiro.start()
+cook.start()
 
 # Esperando as threads terminarem
 for canibal in canibais:
     canibal.join()
-cozinheiro.join()
+cook.join()
