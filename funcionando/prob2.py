@@ -2,7 +2,7 @@ import threading
 import time
 import random
 from colorama import Fore, Style
-from lamport import LamportMutex  # Importa a classe LamportMutex do arquivo lamport.py
+from lamport import LamportMutex  
 
 class Cannibal(threading.Thread):
     def __init__(self, index, servings, table, mutex, cook):
@@ -15,7 +15,6 @@ class Cannibal(threading.Thread):
 
     def run(self):
         while True:
-            # Canibal com fome
             time.sleep(random.uniform(0, 3))
             
             # Tenta pegar porções da mesa
@@ -46,11 +45,9 @@ class Cook(threading.Thread):
     def run(self):
         while True:
             with self.cond:
-                # Cozinheiro dormindo
                 print('\nCozinheiro dormindo...')
                 self.cond.wait()
             
-                # Cozinheiro acorda e prepara mais porções
                 print('\nCozinheiro acordou.')
                 self.table.value = self.servings
                 print(f'{Fore.GREEN}Cozinheiro colocou {self.servings} porções na mesa.{Style.RESET_ALL}')

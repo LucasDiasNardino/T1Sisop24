@@ -2,7 +2,7 @@ import threading
 import time
 import random
 from colorama import Fore, Style
-from lamport import LamportMutex  # Importa a classe LamportMutex do arquivo lamport.py
+from lamport import LamportMutex  
 
 class CircularQueue:
     def __init__(self, size):
@@ -34,22 +34,23 @@ class CircularQueue:
             return None
         elif self.front == self.rear:
             item = self.queue[self.front]
-            self.queue[self.front] = None  # Remove o item da fila
+            self.queue[self.front] = None  
             self.front = self.rear = -1
             print(f"{Fore.RED}Item consumido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
             return item
         else:
             item = self.queue[self.front]
-            self.queue[self.front] = None  # Remove o item da fila
+            self.queue[self.front] = None  
             self.front = (self.front + 1) % self.size
             print(f"{Fore.RED}Item consumido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
             return item
 
-mutex = LamportMutex(5)  # Altere para o número adequado de threads
 tamanho_fila = int(input("Digite o tamanho da fila: \n"))
 queue = CircularQueue(tamanho_fila)  
 qtProdutores = int(input("Digite a quantidade de produtores: \n"))
 qtConsumidores = int(input("Digite a quantidade de consumidores: \n"))
+
+mutex = LamportMutex(qtProdutores+qtConsumidores)  
 
 class Produtor(threading.Thread):
     def run(self):
@@ -57,7 +58,7 @@ class Produtor(threading.Thread):
         while True:
             mutex.lock(threading.get_ident() % 5)
             if not queue.is_full():
-                item = random.randint(1, 100)  # Item produzido
+                item = random.randint(1, 100)  
                 queue.enqueue(item)
             mutex.unlock(threading.get_ident() % 5)
             time.sleep(1)
