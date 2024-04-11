@@ -45,11 +45,12 @@ class CircularQueue:
             print(f"{Fore.RED}Item consumido: {item}. Fila: {self.queue}{Style.RESET_ALL}\n")
             return item
 
-mutex = LamportMutex(5)  # Altere para o número adequado de threads
 tamanho_fila = int(input("Digite o tamanho da fila: \n"))
 queue = CircularQueue(tamanho_fila)  
 qtProdutores = int(input("Digite a quantidade de produtores: \n"))
 qtConsumidores = int(input("Digite a quantidade de consumidores: \n"))
+
+mutex = LamportMutex(qtProdutores+qtConsumidores)  # Altere para o número adequado de threads
 
 class Produtor(threading.Thread):
     def run(self):
